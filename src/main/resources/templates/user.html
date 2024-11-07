@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о пользователе</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container-fluid">
+    <!-- Верхняя панель -->
+    <div class="d-flex text-white bg-dark align-content-center p-2">
+        <div class="p-2 w-100">
+            <span id="username" style="font-weight: bold;">Имя пользователя</span>
+            with roles:
+            <span id="roles">Роль</span>
+        </div>
+        <div class="p-1 flex-shrink-1">
+            <form action="/logout" method="post" style="padding-top: 0;">
+                <button type="submit" class="btn btn-secondary p-0">Logout</button>
+            </form>
+        </div>
+    </div>
+    <div class="row no-gutters">
+        <!-- Боковая панель -->
+        <div class="col-3 col-md-2">
+            <div id="nav-roles" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+                <!-- Ссылки на роли будут добавлены через JavaScript -->
+            </div>
+        </div>
+        <!-- User info -->
+        <div class="col-12 col-sm-6 col-md-8">
+            <h1 class="p-2 m-0">User information-page</h1>
+            <div id="userTable" class="table-responsive">
+                <h2 class="shadow-sm p-3 mb-0 bg-light rounded">About user</h2>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Last name</th>
+                        <th>Role</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td id="userId"></td>
+                        <td id="userFirstName"></td>
+                        <td id="userLastName"></td>
+                        <td id="userRoles"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function loadUserData() {
+        try {
+            const response = await fetch('/api/user'); // Запрос к API
+            if (!response.ok) {
+                throw new Error(`Ошибка загрузки данных: ${response.status}`);
+            }
+            const data = await response.json();
+
+            // Заполняем элементы данными
+            document.getElementById('username').textContent = data.userAuth.username;
+            document.getElementById('userId').textContent = data.userAuth.id;
+            document.getElementById('userFirstName').textContent = data.userAuth.username;
+            document.getElementById('userLastName').textContent = data.userAuth.lastName;
+
+            // Отображаем роли
+            const roles = data.userAuth.roles.map(role => role.name.substring(5)).join(', ');
+            document.getElementById('roles').textContent = roles;
+            document.getElementById('userRoles').textContent = roles;
+
+            // Динамическое добавление ссылок для каждой роли
+            const navRoles = document.getElementById('nav-roles');
+            data.userAuth.roles.forEach(role => {
+                const roleName = role.name.substring(5).toLowerCase();
+                const roleLink = document.createElement('a');
+                roleLink.className = 'nav-link';
+                roleLink.href = `/${roleName}`;
+                roleLink.textContent = roleName;
+
+                if (window.location.pathname === `/${roleName}`) {
+                    roleLink.classList.add('active');
+                }
+
+                navRoles.appendChild(roleLink);
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке данных:', error);
+            document.getElementById('userTable').innerHTML = '<p>Не удалось загрузить данные пользователя.</p>';
+        }
+    }
+    loadUserData(); // Вызов функции загрузки данных
+</script>
+</body>
+</html>
